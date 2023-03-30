@@ -135,6 +135,29 @@ STATIC_URL = '/static/'
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
 
+CORS_ALLOW_HEADERS = [
+    "content-type",
+    "X-CSRFToken"
+]
+CORS_EXPOSE_HEADERS =[
+    "content-type",
+    "X-CSRFToken"
+]
+
+CSRF_COOKIE_SAMESITE='Lax'
+CSRF_COOKIE_HTTPONLY =True
+CSRF_TRUSTED_ORIGINS = [
+    "http://127.0.0.1:3000",
+    "http://localhost:3000",
+]
+
+CORS_ORIGIN_WHITELIST = [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+]
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_CREDENTIALS = True
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
