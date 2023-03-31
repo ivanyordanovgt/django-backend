@@ -22,7 +22,7 @@ class UserSerializer(serializers.ModelSerializer):
 class VideoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Video
-        fields = ['videoId', 'channelId', 'channelTitle', 'description', 'thumbnail', 'title']
+        fields = ['videoId', 'channelId', 'channelTitle', 'description', 'thumbnail', 'title', 'user']
     def create(self, validated_data):
         instance = self.Meta.model(**validated_data)
         instance.save()

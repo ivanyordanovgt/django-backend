@@ -14,9 +14,10 @@ class User(AbstractUser):
 
 class Video(models.Model):
 
-    videoId = models.CharField(max_length=255)
+    videoId = models.CharField(max_length=255, unique=True)
     channelId = models.CharField(max_length=255)
     channelTitle = models.CharField(max_length=100)
     description = models.TextField()
     thumbnail = models.URLField()
     title = models.CharField(max_length=255)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)

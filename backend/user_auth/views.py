@@ -1,3 +1,5 @@
+import json
+from django.http import JsonResponse
 from django.shortcuts import render
 
 # Create your views here.
@@ -8,6 +10,7 @@ import rest_framework.exceptions as ex
 from user_auth.models import User, Video
 from user_auth.serializers import UserSerializer, VideoSerializer
 import jwt, datetime
+from django.core.serializers import serialize
 
 
 
@@ -131,7 +134,7 @@ class VideoView(APIView):
                 payload = jwt.decode(token, 'secret', algorithms=["HS256"])
             except jwt.ExpiredSignatureError:
                 raise AuthenticationFailed('Unauthenticated!')
-            
+            request.data['user'] = payload['id']
             serializer = VideoSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             serializer.save()
@@ -145,10 +148,24 @@ class VideoView(APIView):
         })
     
     def get(self, request):
-        videoId = request.data['videoId']
-        video = Video.objects.filter(videoId=videoId).first()
-        serializer = VideoSerializer(video)
+        token = request.COOKIES.get('jwt')
+        if not token:
+            raise AuthenticationFailed('Unauthenticated!')
+
+        try:
+            payload = jwt.decode(token, 'secret', algorithms=["HS256"])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed('Unauthenticated!')
+        userId = payload['id']
+        user = User.objects.filter(id=userId).first()
+        videos = Video.objects.filter(user=user)
+        print(videos, "!!!!!!")
+        videoList = []
+
+        for video in videos:
+            serializer = VideoSerializer(video)
+            videoList.append(serializer.data)
+        
         return Response({
-            'data': serializer.data
+            'data': videoList
         })
-    
