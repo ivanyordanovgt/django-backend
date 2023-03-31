@@ -5,8 +5,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import AuthenticationFailed, ValidationError
 import rest_framework.exceptions as ex
-from user_auth.models import User
-from user_auth.serializers import UserSerializer
+from user_auth.models import User, Video
+from user_auth.serializers import UserSerializer, VideoSerializer
 import jwt, datetime
 
 
@@ -118,3 +118,37 @@ class LogoutView(APIView):
         }
 
         return response
+    
+class VideoView(APIView):
+    def post(self, request):
+
+        if 'title' in request.data.keys():
+            token = request.COOKIES.get('jwt')
+            if not token:  
+                raise AuthenticationFailed('Unauthenticated!')
+
+            try:
+                payload = jwt.decode(token, 'secret', algorithms=["HS256"])
+            except jwt.ExpiredSignatureError:
+                raise AuthenticationFailed('Unauthenticated!')
+            
+            serializer = VideoSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data)
+        
+        videoId = request.data['videoId']
+        video = Video.objects.filter(videoId=videoId).first()
+        serializer = VideoSerializer(video)
+        return Response({
+            'data': serializer.data
+        })
+    
+    def get(self, request):
+        videoId = request.data['videoId']
+        video = Video.objects.filter(videoId=videoId).first()
+        serializer = VideoSerializer(video)
+        return Response({
+            'data': serializer.data
+        })
+    

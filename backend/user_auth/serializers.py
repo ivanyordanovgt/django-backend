@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from user_auth.models import User
+from user_auth.models import User, Video
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -16,5 +16,14 @@ class UserSerializer(serializers.ModelSerializer):
         instance = self.Meta.model(**validated_data)
         if password is not None:
             instance.set_password(password)
+        instance.save()
+        return instance
+    
+class VideoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Video
+        fields = ['videoId', 'channelId', 'channelTitle', 'description', 'thumbnail', 'title']
+    def create(self, validated_data):
+        instance = self.Meta.model(**validated_data)
         instance.save()
         return instance
