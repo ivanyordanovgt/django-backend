@@ -11,3 +11,12 @@ class User(AbstractUser):
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
+
+class Video(models.Model):
+
+    videoId = models.CharField(max_length=255)
+    channelId = models.CharField(max_length=255)
+    channelTitle = models.CharField(max_length=100)
+    description = models.TextField()
+    thumbnail = models.URLField()
+    title = models.CharField(max_length=255)

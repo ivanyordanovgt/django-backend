@@ -25,7 +25,7 @@ class loginView(APIView):
         password = request.data['password']
 
         user = User.objects.filter(email=email).first()
-
+        errors = {}
         if user is None:
             raise AuthenticationFailed('No users registered with that email!')
         elif not user.check_password(password):
