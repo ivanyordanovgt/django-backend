@@ -115,12 +115,15 @@ class VideoView(APIView):
         print(request.data['videoId'])
         videoId = request.data['videoId']
         video = Video.objects.filter(videoId=videoId)
+        print(data)
 
         if not video:
             raise ValidationError('No video found!')
         video = video[0]
         if video.user.id != userId:
             raise ValidationError('You are not allowed to edit this video!')
+        if data['user'] != userId:
+            raise ValidationError('You are not authorized to change ownership of this video!')
         serializer = VideoSerializer(instance=video, data=data, partial=True)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
