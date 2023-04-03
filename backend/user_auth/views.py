@@ -131,9 +131,10 @@ class VideoView(APIView):
         raise ValidationError
 
     def post(self, request):
+        payload = checkCookie(request)
+
 
         if 'title' in request.data.keys():
-            payload = checkCookie(request)
             request.data['user'] = payload['id']
             serializer = VideoSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
@@ -142,6 +143,8 @@ class VideoView(APIView):
         
         videoId = request.data['videoId']
         video = Video.objects.filter(videoId=videoId).first()
+        if not video:
+            raise ValidationError('Video not found!')
         serializer = VideoSerializer(video)
         return Response({
             'data': serializer.data
