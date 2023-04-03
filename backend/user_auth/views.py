@@ -82,7 +82,7 @@ class UserView(APIView):
         raise ValidationError
 
     def post(self, request):
-        self.checkCookie(request)
+        payload = checkCookie(request)
         if 'id' in request.data.keys():
             userId = request.data['id']
         else:
@@ -112,9 +112,16 @@ class VideoView(APIView):
         payload = checkCookie(request)
         userId = payload['id']
         data = request.data
-        user = User.objects.filter(id=userId).first()
+        print(request.data['videoId'])
+        videoId = request.data['videoId']
+        video = Video.objects.filter(videoId=videoId)
 
-        serializer = UserSerializer(instance=user, data=data, partial=True)
+        if not video:
+            raise ValidationError('No video found!')
+        video = video[0]
+        if video.user.id != userId:
+            raise ValidationError('You are not allowed to edit this video!')
+        serializer = VideoSerializer(instance=video, data=data, partial=True)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             return Response(serializer.data)
