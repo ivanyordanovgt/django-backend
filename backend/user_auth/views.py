@@ -131,9 +131,30 @@ class VideoView(APIView):
         raise ValidationError
 
     def post(self, request):
+
+        if 'getAll' in request.data.keys():
+            videos = Video.objects.all()
+            videosList = []
+            for video in videos:
+                serializer = VideoSerializer(video)
+                videosList.append(serializer.data)
+            return Response({
+                'data': videosList
+            })
+        if 'userId' in request.data.keys():
+            userId = request.data['userId']
+            user = User.objects.filter(id=userId).first()
+            videos = Video.objects.filter(user=user)
+            videosList = []
+            for video in videos:
+                serializer = VideoSerializer(video)
+                videosList.append(serializer.data)
+            print(videos)
+            return Response({
+                'data': videosList
+            })
+        
         payload = checkCookie(request)
-
-
         if 'title' in request.data.keys():
             request.data['user'] = payload['id']
             serializer = VideoSerializer(data=request.data)
