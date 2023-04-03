@@ -12,7 +12,15 @@ from user_auth.serializers import UserSerializer, VideoSerializer
 import jwt, datetime
 from django.core.serializers import serialize
 
+def checkCookie(request):
+    token = request.COOKIES.get('jwt')
+    if not token:
+        raise AuthenticationFailed('Unauthenticated!')
 
+    try:
+        return jwt.decode(token, 'secret', algorithms=["HS256"])
+    except jwt.ExpiredSignatureError:
+        raise AuthenticationFailed('Unauthenticated!')
 
 class registerView(APIView):
     def post(self, request):
@@ -52,25 +60,8 @@ class loginView(APIView):
 
 class UserView(APIView):
 
-    def checkCookie(self, request):
-        token = request.COOKIES.get('jwt')
-        if not token:
-            raise AuthenticationFailed('Unauthenticated!')
-
-        try:
-            payload = jwt.decode(token, 'secret', algorithms=["HS256"])
-        except jwt.ExpiredSignatureError:
-            raise AuthenticationFailed('Unauthenticated!')
-
     def get(self, request):
-        token = request.COOKIES.get('jwt')
-        if not token:
-            raise AuthenticationFailed('Unauthenticated!')
-
-        try:
-            payload = jwt.decode(token, 'secret', algorithms=["HS256"])
-        except jwt.ExpiredSignatureError:
-            raise AuthenticationFailed('Unauthenticated!')
+        payload = checkCookie(request)
         userId = payload['id']
         user = User.objects.filter(id=userId).first()
         serializer = UserSerializer(user)
@@ -79,14 +70,7 @@ class UserView(APIView):
         })
 
     def put(self, request):
-        token = request.COOKIES.get('jwt')
-        if not token:
-            raise AuthenticationFailed('Unauthenticated!')
-
-        try:
-            payload = jwt.decode(token, 'secret', algorithms=["HS256"])
-        except jwt.ExpiredSignatureError:
-            raise AuthenticationFailed('Unauthenticated!')
+        payload = checkCookie(request)
         userId = payload['id']
         data = request.data
         user = User.objects.filter(id=userId).first()
@@ -123,17 +107,23 @@ class LogoutView(APIView):
         return response
     
 class VideoView(APIView):
+
+    def put(self, request):
+        payload = checkCookie(request)
+        userId = payload['id']
+        data = request.data
+        user = User.objects.filter(id=userId).first()
+
+        serializer = UserSerializer(instance=user, data=data, partial=True)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data)
+        raise ValidationError
+
     def post(self, request):
 
         if 'title' in request.data.keys():
-            token = request.COOKIES.get('jwt')
-            if not token:  
-                raise AuthenticationFailed('Unauthenticated!')
-
-            try:
-                payload = jwt.decode(token, 'secret', algorithms=["HS256"])
-            except jwt.ExpiredSignatureError:
-                raise AuthenticationFailed('Unauthenticated!')
+            payload = checkCookie(request)
             request.data['user'] = payload['id']
             serializer = VideoSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
@@ -148,14 +138,7 @@ class VideoView(APIView):
         })
     
     def get(self, request):
-        token = request.COOKIES.get('jwt')
-        if not token:
-            raise AuthenticationFailed('Unauthenticated!')
-
-        try:
-            payload = jwt.decode(token, 'secret', algorithms=["HS256"])
-        except jwt.ExpiredSignatureError:
-            raise AuthenticationFailed('Unauthenticated!')
+        payload = checkCookie(request)
         userId = payload['id']
         user = User.objects.filter(id=userId).first()
         videos = Video.objects.filter(user=user)
